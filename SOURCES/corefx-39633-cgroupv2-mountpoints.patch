@@ -1,0 +1,46 @@
+From 1864630f762160e1cb439362cc0577471624192a Mon Sep 17 00:00:00 2001
+From: Omair Majid <omajid@redhat.com>
+Date: Fri, 19 Jul 2019 19:18:51 -0400
+Subject: [PATCH] Fix up cgroup2fs in Interop.MountPoints.FormatInfo
+
+`stat -fc %T /sys/fs/cgroup` calls this file system `cgroup2fs`
+
+Add the cgroup2fs file system magic number. Available from:
+
+  - https://www.kernel.org/doc/Documentation/cgroup-v2.txt
+  - man 2 statfs
+
+Move cgroup2fs next to cgroupfs in the drive type list, since it is also
+DriveType.Ram.
+---
+ .../Unix/System.Native/Interop.MountPoints.FormatInfo.cs       | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs b/src/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs
+index af38a2285ba2..4240bd4853ab 100644
+--- a/src/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs
++++ b/src/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs
+@@ -47,6 +47,7 @@ internal enum UnixFileSystemTypes : long
+             btrfs = 0x9123683E,
+             ceph = 0x00C36400,
+             cgroupfs = 0x0027E0EB,
++            cgroup2fs = 0x63677270,
+             cifs = 0xFF534D42,
+             coda = 0x73757245,
+             coherent = 0x012FF7B7,
+@@ -231,7 +232,6 @@ private static DriveType GetDriveType(string fileSystemName)
+                 case "bpf_fs":
+                 case "btrfs":
+                 case "btrfs_test":
+-                case "cgroup2fs":
+                 case "coh":
+                 case "daxfs":
+                 case "drvfs":
+@@ -384,6 +384,7 @@ private static DriveType GetDriveType(string fileSystemName)
+                 case "binfmt_misc":
+                 case "cgroup":
+                 case "cgroupfs":
++                case "cgroup2fs":
+                 case "configfs":
+                 case "cramfs":
+                 case "cramfs-wend":
