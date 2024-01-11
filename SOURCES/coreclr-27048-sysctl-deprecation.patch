@@ -1,0 +1,42 @@
+From 3dd725eca0079e2b49821dfeb0ec1cb166cc7414 Mon Sep 17 00:00:00 2001
+From: Omair Majid <omajid@redhat.com>
+Date: Fri, 4 Oct 2019 19:29:53 -0400
+Subject: [PATCH] Handle glibc sys/sysctl.h deprecation
+
+glibc has deprecated sys/sysctl.h:
+
+    In file included from /coreclr/src/pal/src/misc/sysinfo.cpp:32:
+    /usr/include/sys/sysctl.h:21:2: error: "The <sys/sysctl.h> header is deprecated and will be removed." [-Werror,-W#warnings]
+    #warning "The <sys/sysctl.h> header is deprecated and will be removed."
+     ^
+    1 error generated.
+
+Fix that by preferring sysconf and only including sys/sysctl.h if
+HAVE_SYSCONF is not true. This mirrors the order of the implementation
+code in this file (sysinfo.cpp) which checks for HAVE_SYSCONF
+before HAVE_SYSCTL.
+
+Fixes #27008
+---
+ src/pal/src/misc/sysinfo.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/pal/src/misc/sysinfo.cpp b/src/pal/src/misc/sysinfo.cpp
+index e1c949e38d53..50ccf3a75e16 100644
+--- a/src/pal/src/misc/sysinfo.cpp
++++ b/src/pal/src/misc/sysinfo.cpp
+@@ -28,9 +28,12 @@ Revision History:
+ #define __STDC_FORMAT_MACROS
+ #include <inttypes.h>
+ #include <sys/types.h>
+-#if HAVE_SYSCTL
++
++#if HAVE_SYSCONF
++// <unistd.h> already included above
++#elif HAVE_SYSCTL
+ #include <sys/sysctl.h>
+-#elif !HAVE_SYSCONF
++#else
+ #error Either sysctl or sysconf is required for GetSystemInfo.
+ #endif
+ 
